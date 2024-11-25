@@ -1,0 +1,46 @@
+import requests
+import nmap
+
+def scan_open_ports(target_ip):
+    print(f"Scanning ports on {target_ip}...")
+    nm = nmap.PortScanner()
+    try:
+        nm.scan(target_ip, '1-1024')
+        open_ports = []
+        if target_ip in nm.all_hosts():
+            for port in nm[target_ip]['tcp']:
+                if nm[target_ip]['tcp'][port]['state'] == 'open':
+                    open_ports.append(port)
+        return open_ports
+    except Exception as e:
+        print(f"Error during port scan: {e}")
+        return []
+
+def check_outdated_software(url):
+    print(f"Checking software at {url}...")
+    try:
+        response = requests.get(url, timeout=10)
+        headers = response.headers
+        if 'Server' in headers and 'Apache/2.4.1' in headers['Server']:
+            return 'Outdated Apache version detected'
+        return 'Software up to date'
+    except requests.RequestException as e:
+        return f"Error checking software: {e}"
+
+def main():
+    target_ip = '10.0.2.15'
+    target_url = 'http://10.0.2.15'  # Assuming the web service is on this IP
+    
+    print("Scanning for open ports...")
+    open_ports = scan_open_ports(target_ip)
+    if open_ports:
+        print(f"Open ports: {open_ports}")
+    else:
+        print("No open ports found.")
+
+    print("Checking for outdated software...")
+    software_status = check_outdated_software(target_url)
+    print(software_status)
+
+if __name__ == '__main__':
+    main()
